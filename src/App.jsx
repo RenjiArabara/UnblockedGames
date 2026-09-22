@@ -59,7 +59,9 @@ export default function App() {
   useEffect(() => {
     async function loadGames() {
       try {
-        const res = await fetch('/games.json');
+        const baseUrl = import.meta.env.BASE_URL || './';
+        const gamesJsonPath = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}games.json`;
+        const res = await fetch(gamesJsonPath);
         if (!res.ok) throw new Error('Failed to load games.json');
         const defaultGames = await res.json();
 
@@ -147,7 +149,9 @@ export default function App() {
   const handleResetDefault = async () => {
     localStorage.removeItem(STORAGE_CUSTOM_KEY);
     try {
-      const res = await fetch('/games.json');
+      const baseUrl = import.meta.env.BASE_URL || './';
+      const gamesJsonPath = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}games.json`;
+      const res = await fetch(gamesJsonPath);
       const defaultGames = await res.json();
       setGames(defaultGames);
     } catch (e) {
