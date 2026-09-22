@@ -13,6 +13,7 @@ import { GamePlayer } from './components/GamePlayer.jsx';
 import { AddGameModal } from './components/AddGameModal.jsx';
 import { JsonModal } from './components/JsonModal.jsx';
 import { formatNumber } from './utils/iframeHelper.js';
+import { DEFAULT_GAMES } from './data/defaultGames.js';
 
 const STORAGE_CUSTOM_KEY = 'nexus_custom_games';
 const STORAGE_FAVORITES_KEY = 'nexus_favorite_games';
@@ -42,8 +43,8 @@ const CLOAK_CONFIGS = {
 };
 
 export default function App() {
-  const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [games, setGames] = useState(DEFAULT_GAMES);
+  const [loading, setLoading] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,20 +60,29 @@ export default function App() {
   useEffect(() => {
     async function loadGames() {
       try {
-        const baseUrl = import.meta.env.BASE_URL || './';
-        const gamesJsonPath = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}games.json`;
-        const res = await fetch(gamesJsonPath);
-        if (!res.ok) throw new Error('Failed to load games.json');
-        const defaultGames = await res.json();
+        let baseList = DEFAULT_GAMES;
+        try {
+          const baseUrl = import.meta.env.BASE_URL || './';
+          const gamesJsonPath = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}games.json`;
+          const res = await fetch(gamesJsonPath);
+          if (res.ok) {
+            const fetched = await res.json();
+            if (Array.isArray(fetched) && fetched.length > 0) {
+              baseList = fetched;
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Could not fetch external games.json, falling back to embedded defaults:', fetchErr);
+        }
 
         // Load custom user games from storage
         const savedCustom = localStorage.getItem(STORAGE_CUSTOM_KEY);
         const customGames = savedCustom ? JSON.parse(savedCustom) : [];
 
         // Combine
-        setGames([...defaultGames, ...customGames]);
+        setGames([...baseList, ...customGames]);
       } catch (err) {
-        console.error('Error fetching games.json:', err);
+        console.error('Error in loadGames:', err);
       } finally {
         setLoading(false);
       }

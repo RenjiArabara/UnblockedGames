@@ -1,0 +1,110 @@
+export const DEFAULT_GAMES = [
+  {
+    id: "classic-2048",
+    title: "Classic 2048",
+    category: "Puzzle",
+    description: "Slide numbered tiles on a 4x4 grid and combine identical numbers until you craft the elusive 2048 tile.",
+    iframe: '<iframe src="/games/2048.html" title="Classic 2048" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Arrow keys, WASD, or swipe gesture on touch screens",
+    rating: 4.9,
+    plays: 28400,
+    themeColor: "#38bdf8",
+    badge: "Popular"
+  },
+  {
+    id: "retro-snake",
+    title: "Retro Snake",
+    category: "Arcade",
+    description: "The quintessential arcade experience. Guide the glowing neon serpent, devour red & gold apples, and survive without crashing.",
+    iframe: '<iframe src="/games/snake.html" title="Retro Snake" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Arrow keys or WASD to turn direction",
+    rating: 4.8,
+    plays: 34120,
+    themeColor: "#10b981",
+    badge: "Hot"
+  },
+  {
+    id: "flappy-sky",
+    title: "Flappy Sky",
+    category: "Arcade",
+    description: "Tap your wings and maintain steady altitude as you glide through tight passages of green pipes.",
+    iframe: '<iframe src="/games/flappy.html" title="Flappy Sky" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Spacebar or screen tap to flap",
+    rating: 4.7,
+    plays: 19850,
+    themeColor: "#f59e0b",
+    badge: "Challenging"
+  },
+  {
+    id: "neon-breakout",
+    title: "Neon Breakout",
+    category: "Arcade",
+    description: "Deflect the bouncing ball with your glowing paddle to shatter rows of radiant colored bricks.",
+    iframe: '<iframe src="/games/breakout.html" title="Neon Breakout" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Move mouse or Left/Right Arrow keys to steer paddle",
+    rating: 4.8,
+    plays: 22100,
+    themeColor: "#ec4899",
+    badge: "Classic"
+  },
+  {
+    id: "space-defender",
+    title: "Space Defender",
+    category: "Action",
+    description: "Pilot your starship through an onslaught of alien invaders, dodging plasma fire and blasting motherships.",
+    iframe: '<iframe src="/games/space-invaders.html" title="Space Defender" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Left/Right Arrows or A/D to steer, Spacebar to shoot",
+    rating: 4.9,
+    plays: 41900,
+    themeColor: "#8b5cf6",
+    badge: "Top Rated"
+  },
+  {
+    id: "tetra-blocks",
+    title: "Tetra Blocks",
+    category: "Puzzle",
+    description: "Stack falling tetromino shapes, create seamless horizontal lines, and chase high-speed drop combos.",
+    iframe: '<iframe src="/games/tetris.html" title="Tetra Blocks" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Left/Right to shift, Up to rotate, Down for soft drop, Space for hard drop",
+    rating: 4.9,
+    plays: 52300,
+    themeColor: "#06b6d4",
+    badge: "Featured"
+  },
+  {
+    id: "retro-pong",
+    title: "Cyber Pong 1v1",
+    category: "Retro",
+    description: "Play table tennis against an adaptive AI engine or a friend in this futuristic neon simulator.",
+    iframe: '<iframe src="/games/pong.html" title="Cyber Pong 1v1" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "W/S or Up/Down arrows to move paddle",
+    rating: 4.6,
+    plays: 15400,
+    themeColor: "#14b8a6",
+    badge: "2 Player"
+  },
+  {
+    id: "minesweeper-pro",
+    title: "Minesweeper Pro",
+    category: "Puzzle",
+    description: "Uncover tiles with deductive logic while placing flags on hidden landmines across grid difficulties.",
+    iframe: '<iframe src="/games/minesweeper.html" title="Minesweeper Pro" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Left click to reveal, Right click or long press to flag",
+    rating: 4.7,
+    plays: 18200,
+    themeColor: "#eab308",
+    badge: "Strategy"
+  },
+  {
+    id: "tic-tac-neon",
+    title: "Tic Tac Toe Neon",
+    category: "Puzzle",
+    description: "Classic 3x3 tic tac toe with unbeatable smart AI mode and 2-player local pass-and-play.",
+    iframe: '<iframe src="/games/tictactoe.html" title="Tic Tac Toe Neon" width="100%" height="100%" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe>',
+    controls: "Click or tap to place X or O",
+    rating: 4.5,
+    plays: 12100,
+    themeColor: "#a855f7",
+    badge: "Casual"
+  }
+];
