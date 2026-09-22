@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cyber Pong</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #090d16;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 12px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #a855f7;
+    letter-spacing: -0.5px;
+  }
+  .scores {
+    display: flex;
+    gap: 16px;
+    font-size: 20px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .game-container {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 16/10;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0f172a;
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.active { display: flex; }
+  .btn {
+    background: #a855f7;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #c084fc; transform: scale(1.02); }
+  .mode-select {
+    display: flex;
+    gap: 8px;
+  }
+  .mode-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    background: #a855f7;
+    color: #fff;
+    border-color: #a855f7;
+  }
+  .instructions {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Cyber Pong</div>
+    <div class="scores">
+      <span style="color:#38bdf8;" id="p1-score">0</span>
+      <span style="color:#64748b;">:</span>
+      <span style="color:#f43f5e;" id="p2-score">0</span>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <canvas id="canvas" width="560" height="350"></canvas>
+    <div class="overlay active" id="overlay">
+      <h2 id="overlay-msg" style="color: #a855f7; font-size: 26px;">Cyber Pong</h2>
+      <div class="mode-select">
+        <button class="mode-btn active" id="mode-ai">VS CPU</button>
+        <button class="mode-btn" id="mode-2p">2 Players</button>
+      </div>
+      <button class="btn" id="start-btn">Start Game</button>
+    </div>
+  </div>
+
+  <div class="instructions" id="inst">Player 1: W/S or Mouse | Player 2 / CPU: Up/Down Arrow</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const p1ScoreEl = document.getElementById('p1-score');
+  const p2ScoreEl = document.getElementById('p2-score');
+  const overlay = document.getElementById('overlay');
+  const overlayMsg = document.getElementById('overlay-msg');
+  const startBtn = document.getElementById('start-btn');
+  const modeAiBtn = document.getElementById('mode-ai');
+  const mode2pBtn = document.getElementById('mode-2p');
+  const instEl = document.getElementById('inst');
+
+  let mode = 'AI';
+  let p1Score = 0;
+  let p2Score = 0;
+  let isPlaying = false;
+
+  const paddleH = 70;
+  const paddleW = 10;
+  let p1 = { x: 20, y: 140, vy: 0, speed: 6 };
+  let p2 = { x: canvas.width - 30, y: 140, vy: 0, speed: 5 };
+  let ball = { x: 280, y: 175, dx: 4, dy: 3, radius: 6 };
+  let keys = {};
+
+  modeAiBtn.onclick = () => {
+    mode = 'AI';
+    modeAiBtn.classList.add('active');
+    mode2pBtn.classList.remove('active');
+    instEl.innerText = 'Use W/S, Up/Down, or Mouse to move your paddle';
+  };
+
+  mode2pBtn.onclick = () => {
+    mode = '2P';
+    mode2pBtn.classList.add('active');
+    modeAiBtn.classList.remove('active');
+    instEl.innerText = 'P1: W/S Keys | P2: Up/Down Arrow Keys';
+  };
+
+  function resetBall(scorer) {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    ball.dx = (scorer === 'P1' ? -4 : 4);
+    ball.dy = (Math.random() - 0.5) * 6;
+  }
+
+  function start() {
+    p1Score = 0;
+    p2Score = 0;
+    p1ScoreEl.innerText = '0';
+    p2ScoreEl.innerText = '0';
+    p1.y = canvas.height / 2 - paddleH / 2;
+    p2.y = canvas.height / 2 - paddleH / 2;
+    resetBall();
+    isPlaying = true;
+    overlay.classList.remove('active');
+  }
+
+  function update() {
+    if (!isPlaying) return;
+
+    // P1 movement
+    if (keys['w'] || keys['W'] || (mode === 'AI' && keys['ArrowUp'])) p1.y -= p1.speed;
+    if (keys['s'] || keys['S'] || (mode === 'AI' && keys['ArrowDown'])) p1.y += p1.speed;
+
+    // constrain P1
+    if (p1.y < 0) p1.y = 0;
+    if (p1.y + paddleH > canvas.height) p1.y = canvas.height - paddleH;
+
+    // P2 movement
+    if (mode === 'AI') {
+      const center = p2.y + paddleH / 2;
+      if (center < ball.y - 15) p2.y += p2.speed * 0.85;
+      else if (center > ball.y + 15) p2.y -= p2.speed * 0.85;
+    } else {
+      if (keys['ArrowUp']) p2.y -= p2.speed;
+      if (keys['ArrowDown']) p2.y += p2.speed;
+    }
+
+    // constrain P2
+    if (p2.y < 0) p2.y = 0;
+    if (p2.y + paddleH > canvas.height) p2.y = canvas.height - paddleH;
+
+    // Ball movement
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Wall bounce
+    if (ball.y - ball.radius < 0) { ball.y = ball.radius; ball.dy = -ball.dy; }
+    if (ball.y + ball.radius > canvas.height) { ball.y = canvas.height - ball.radius; ball.dy = -ball.dy; }
+
+    // P1 hit
+    if (
+      ball.x - ball.radius <= p1.x + paddleW &&
+      ball.x + ball.radius >= p1.x &&
+      ball.y >= p1.y &&
+      ball.y <= p1.y + paddleH
+    ) {
+      ball.dx = Math.abs(ball.dx) * 1.05;
+      const hit = (ball.y - (p1.y + paddleH/2)) / (paddleH/2);
+      ball.dy = hit * 5;
+    }
+
+    // P2 hit
+    if (
+      ball.x + ball.radius >= p2.x &&
+      ball.x - ball.radius <= p2.x + paddleW &&
+      ball.y >= p2.y &&
+      ball.y <= p2.y + paddleH
+    ) {
+      ball.dx = -Math.abs(ball.dx) * 1.05;
+      const hit = (ball.y - (p2.y + paddleH/2)) / (paddleH/2);
+      ball.dy = hit * 5;
+    }
+
+    // Score detection
+    if (ball.x < 0) {
+      p2Score++;
+      p2ScoreEl.innerText = p2Score;
+      checkWin();
+      resetBall('P2');
+    } else if (ball.x > canvas.width) {
+      p1Score++;
+      p1ScoreEl.innerText = p1Score;
+      checkWin();
+      resetBall('P1');
+    }
+  }
+
+  function checkWin() {
+    if (p1Score >= 7 || p2Score >= 7) {
+      isPlaying = false;
+      overlayMsg.innerText = p1Score >= 7 ? 'Player 1 Wins!' : (mode === 'AI' ? 'CPU Wins!' : 'Player 2 Wins!');
+      startBtn.innerText = 'Play Again';
+      overlay.classList.add('active');
+    }
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // net
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // P1 paddle
+    ctx.fillStyle = '#38bdf8';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#38bdf8';
+    ctx.beginPath();
+    ctx.roundRect(p1.x, p1.y, paddleW, paddleH, 4);
+    ctx.fill();
+
+    // P2 paddle
+    ctx.fillStyle = '#f43f5e';
+    ctx.shadowColor = '#f43f5e';
+    ctx.beginPath();
+    ctx.roundRect(p2.x, p2.y, paddleW, paddleH, 4);
+    ctx.fill();
+
+    // ball
+    ctx.fillStyle = '#fff';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#fff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('keydown', e => { keys[e.key] = true; });
+  window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+  canvas.addEventListener('mousemove', e => {
+    if (mode === 'AI') {
+      const rect = canvas.getBoundingClientRect();
+      const scaleY = canvas.height / rect.height;
+      p1.y = (e.clientY - rect.top) * scaleY - paddleH / 2;
+    }
+  });
+
+  canvas.addEventListener('touchmove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleY = canvas.height / rect.height;
+    p1.y = (e.touches[0].clientY - rect.top) * scaleY - paddleH / 2;
+  }, { passive: true });
+
+  startBtn.onclick = start;
+  draw();
+  loop();
+</script>
+</body>
+</html>

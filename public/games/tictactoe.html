@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tic Tac Toe Master</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #090d16;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #f43f5e;
+    letter-spacing: -0.5px;
+  }
+  .status {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+  .mode-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .mode-btn.active {
+    background: #f43f5e;
+    color: #fff;
+    border-color: #f43f5e;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 10px;
+    background: #1e293b;
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid #334155;
+    box-shadow: 0 0 30px rgba(244, 63, 94, 0.15);
+  }
+  .cell {
+    width: 100px;
+    height: 100px;
+    background: #0f172a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .cell:hover {
+    background: #1e293b;
+  }
+  .cell.x {
+    color: #38bdf8;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  }
+  .cell.o {
+    color: #f43f5e;
+    text-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+  }
+  .btn {
+    margin-top: 16px;
+    background: #334155;
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn:hover { background: #475569; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Tic Tac Toe</div>
+    <div class="status" id="status-text">Your turn (X)</div>
+  </div>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="btn-ai">VS CPU</button>
+    <button class="mode-btn" id="btn-2p">Pass & Play</button>
+  </div>
+
+  <div class="board" id="board">
+    <div class="cell" data-i="0"></div>
+    <div class="cell" data-i="1"></div>
+    <div class="cell" data-i="2"></div>
+    <div class="cell" data-i="3"></div>
+    <div class="cell" data-i="4"></div>
+    <div class="cell" data-i="5"></div>
+    <div class="cell" data-i="6"></div>
+    <div class="cell" data-i="7"></div>
+    <div class="cell" data-i="8"></div>
+  </div>
+
+  <button class="btn" id="reset-btn">Reset Board</button>
+
+<script>
+  let board = Array(9).fill('');
+  let turn = 'X';
+  let mode = 'AI'; // 'AI' or '2P'
+  let gameOver = false;
+
+  const cells = document.querySelectorAll('.cell');
+  const statusText = document.getElementById('status-text');
+  const btnAi = document.getElementById('btn-ai');
+  const btn2p = document.getElementById('btn-2p');
+  const resetBtn = document.getElementById('reset-btn');
+
+  const WIN_COMBOS = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+
+  function checkWin(b, player) {
+    return WIN_COMBOS.some(combo => combo.every(idx => b[idx] === player));
+  }
+
+  function checkTie(b) {
+    return b.every(c => c !== '');
+  }
+
+  function render() {
+    cells.forEach((c, idx) => {
+      c.innerText = board[idx];
+      c.className = 'cell ' + (board[idx] === 'X' ? 'x' : (board[idx] === 'O' ? 'o' : ''));
+    });
+  }
+
+  function handleCellClick(e) {
+    if (gameOver) return;
+    const idx = parseInt(e.target.dataset.i, 10);
+    if (board[idx] !== '') return;
+
+    board[idx] = turn;
+    render();
+
+    if (checkWin(board, turn)) {
+      statusText.innerText = `${turn} Wins!`;
+      gameOver = true;
+      return;
+    }
+
+    if (checkTie(board)) {
+      statusText.innerText = `It's a Draw!`;
+      gameOver = true;
+      return;
+    }
+
+    turn = turn === 'X' ? 'O' : 'X';
+    statusText.innerText = mode === 'AI' && turn === 'O' ? "CPU thinking..." : `Turn: ${turn}`;
+
+    if (mode === 'AI' && turn === 'O' && !gameOver) {
+      setTimeout(makeAiMove, 300);
+    }
+  }
+
+  function makeAiMove() {
+    if (gameOver) return;
+    // smart move: win or block or center
+    let move = getBestMove();
+    board[move] = 'O';
+    render();
+
+    if (checkWin(board, 'O')) {
+      statusText.innerText = 'CPU Wins!';
+      gameOver = true;
+      return;
+    }
+
+    if (checkTie(board)) {
+      statusText.innerText = `It's a Draw!`;
+      gameOver = true;
+      return;
+    }
+
+    turn = 'X';
+    statusText.innerText = `Your turn (X)`;
+  }
+
+  function getBestMove() {
+    // 1. Can CPU win now?
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === '') {
+        board[i] = 'O';
+        if (checkWin(board, 'O')) { board[i] = ''; return i; }
+        board[i] = '';
+      }
+    }
+    // 2. Can player win? Block them
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === '') {
+        board[i] = 'X';
+        if (checkWin(board, 'X')) { board[i] = ''; return i; }
+        board[i] = '';
+      }
+    }
+    // 3. Take center
+    if (board[4] === '') return 4;
+    // 4. Take corners
+    const corners = [0, 2, 6, 8].filter(c => board[c] === '');
+    if (corners.length > 0) return corners[Math.floor(Math.random() * corners.length)];
+    // 5. Take any empty
+    const available = [];
+    board.forEach((val, i) => { if (val === '') available.push(i); });
+    return available[Math.floor(Math.random() * available.length)];
+  }
+
+  function reset() {
+    board = Array(9).fill('');
+    turn = 'X';
+    gameOver = false;
+    statusText.innerText = `Your turn (X)`;
+    render();
+  }
+
+  btnAi.onclick = () => {
+    mode = 'AI';
+    btnAi.classList.add('active');
+    btn2p.classList.remove('active');
+    reset();
+  };
+
+  btn2p.onclick = () => {
+    mode = '2P';
+    btn2p.classList.add('active');
+    btnAi.classList.remove('active');
+    reset();
+  };
+
+  cells.forEach(c => c.addEventListener('click', handleCellClick));
+  resetBtn.onclick = reset;
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "classic-2048",
+    "title": "Classic 2048",
+    "category": "Puzzle",
+    "description": "Slide numbered tiles on a 4x4 grid and combine identical numbers until you craft the elusive 2048 tile.",
+    "iframe": "<iframe src=\"/games/2048.html\" title=\"Classic 2048\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Arrow keys, WASD, or swipe gesture on touch screens",
+    "rating": 4.9,
+    "plays": 28400,
+    "themeColor": "#38bdf8",
+    "badge": "Popular"
+  },
+  {
+    "id": "retro-snake",
+    "title": "Retro Snake",
+    "category": "Arcade",
+    "description": "The quintessential arcade experience. Guide the glowing neon serpent, devour red & gold apples, and survive without crashing.",
+    "iframe": "<iframe src=\"/games/snake.html\" title=\"Retro Snake\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Arrow keys or WASD to turn direction",
+    "rating": 4.8,
+    "plays": 34120,
+    "themeColor": "#10b981",
+    "badge": "Hot"
+  },
+  {
+    "id": "flappy-sky",
+    "title": "Flappy Sky",
+    "category": "Arcade",
+    "description": "Tap your wings and maintain steady altitude as you glide through tight passages of green pipes.",
+    "iframe": "<iframe src=\"/games/flappy.html\" title=\"Flappy Sky\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Spacebar or screen tap to flap",
+    "rating": 4.7,
+    "plays": 19850,
+    "themeColor": "#f59e0b",
+    "badge": "Challenging"
+  },
+  {
+    "id": "neon-breakout",
+    "title": "Neon Breakout",
+    "category": "Arcade",
+    "description": "Deflect the bouncing ball with your glowing paddle to shatter rows of radiant colored bricks.",
+    "iframe": "<iframe src=\"/games/breakout.html\" title=\"Neon Breakout\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Move mouse or Left/Right Arrow keys to steer paddle",
+    "rating": 4.8,
+    "plays": 22300,
+    "themeColor": "#ec4899",
+    "badge": "Classic"
+  },
+  {
+    "id": "space-defender",
+    "title": "Space Defender",
+    "category": "Action",
+    "description": "Defend the outer perimeter against marching alien armadas. Evade enemy fire and unleash laser salvos.",
+    "iframe": "<iframe src=\"/games/space-defender.html\" title=\"Space Defender\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Left/Right arrow or A/D to steer, Spacebar to shoot",
+    "rating": 4.9,
+    "plays": 16400,
+    "themeColor": "#06b6d4",
+    "badge": "Featured"
+  },
+  {
+    "id": "cyber-pong",
+    "title": "Cyber Pong",
+    "category": "Sports",
+    "description": "Fast-paced digital table tennis. Battle against a reactive CPU bot or play local 2-player mode with a friend.",
+    "iframe": "<iframe src=\"/games/pong.html\" title=\"Cyber Pong\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "W/S or Up/Down arrows to move paddle",
+    "rating": 4.6,
+    "plays": 14200,
+    "themeColor": "#a855f7",
+    "badge": "2-Player"
+  },
+  {
+    "id": "cyber-runner",
+    "title": "Cyber Runner",
+    "category": "Action",
+    "description": "Endless high-speed dash across an electrified neon wasteland. Leap over barriers and duck under airborne obstacles.",
+    "iframe": "<iframe src=\"/games/dino-runner.html\" title=\"Cyber Runner\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Space or Up to jump, Down to duck",
+    "rating": 4.8,
+    "plays": 31250,
+    "themeColor": "#10b981",
+    "badge": "Endless"
+  },
+  {
+    "id": "tetra-blocks",
+    "title": "Tetra Blocks",
+    "category": "Puzzle",
+    "description": "The definitive falling blocks puzzle game. Arrange falling tetrominoes into complete horizontal lines to clear the board.",
+    "iframe": "<iframe src=\"/games/tetra.html\" title=\"Tetra Blocks\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Left/Right to slide, Up to rotate, Down for soft drop, Space to hard drop",
+    "rating": 4.9,
+    "plays": 45100,
+    "themeColor": "#38bdf8",
+    "badge": "Top Rated"
+  },
+  {
+    "id": "asteroids-zone",
+    "title": "Asteroids Zone",
+    "category": "Retro",
+    "description": "Pilot your vector spacecraft through dense asteroid belts. Fire pinpoint plasma shots and utilize hyperspace momentum.",
+    "iframe": "<iframe src=\"/games/asteroids.html\" title=\"Asteroids Zone\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Left/Right to rotate, Up to thrust, Space to fire lasers",
+    "rating": 4.7,
+    "plays": 12900,
+    "themeColor": "#38bdf8",
+    "badge": "Retro"
+  },
+  {
+    "id": "tic-tac-toe",
+    "title": "Tic Tac Toe Pro",
+    "category": "Puzzle",
+    "description": "Test your strategy in the timeless 3x3 game. Challenge an intelligent Minimax CPU or challenge a friend side-by-side.",
+    "iframe": "<iframe src=\"/games/tictactoe.html\" title=\"Tic Tac Toe Pro\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen sandbox=\"allow-scripts allow-same-origin allow-pointer-lock\"></iframe>",
+    "controls": "Click or tap any square to place your mark",
+    "rating": 4.5,
+    "plays": 9800,
+    "themeColor": "#f43f5e",
+    "badge": "Quick"
+  }
+]

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Space Defender</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #050814;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 12px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #06b6d4;
+    letter-spacing: -0.5px;
+  }
+  .stats {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .game-container {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    height: 560px;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #020617;
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.15);
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.active { display: flex; }
+  .btn {
+    background: #06b6d4;
+    color: #082f49;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #22d3ee; transform: scale(1.02); }
+  .instructions {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Space Defender</div>
+    <div class="stats">
+      <div class="stat-item">Score: <strong id="score" style="color:#06b6d4;">0</strong></div>
+      <div class="stat-item">Shields: <strong id="shields" style="color:#10b981;">3</strong></div>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <canvas id="canvas" width="480" height="560"></canvas>
+    <div class="overlay active" id="overlay">
+      <h2 id="overlay-msg" style="color: #06b6d4; font-size: 26px;">Space Defender</h2>
+      <p id="overlay-sub" style="color: #94a3b8; font-size: 14px;">Defend earth from incoming invaders!</p>
+      <button class="btn" id="start-btn">Engage Invaders</button>
+    </div>
+  </div>
+
+  <div class="instructions">Arrow keys / A-D to move, Spacebar to shoot. Drag on touch screen.</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const shieldsEl = document.getElementById('shields');
+  const overlay = document.getElementById('overlay');
+  const overlayMsg = document.getElementById('overlay-msg');
+  const overlaySub = document.getElementById('overlay-sub');
+  const startBtn = document.getElementById('start-btn');
+
+  let player = { x: 220, y: 510, w: 36, h: 24, speed: 5 };
+  let bullets = [];
+  let enemyBullets = [];
+  let enemies = [];
+  let stars = [];
+  let particles = [];
+  let score = 0;
+  let shields = 3;
+  let isPlaying = false;
+  let keys = {};
+  let enemyDir = 1;
+  let enemyStepDown = false;
+  let enemySpeed = 1;
+  let lastShot = 0;
+
+  for (let i = 0; i < 60; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      speed: 0.5 + Math.random() * 1.5,
+      size: Math.random() * 2
+    });
+  }
+
+  function createEnemies() {
+    enemies = [];
+    const rows = 4;
+    const cols = 8;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        enemies.push({
+          x: 40 + c * 48,
+          y: 50 + r * 38,
+          w: 30,
+          h: 22,
+          type: r,
+          alive: true
+        });
+      }
+    }
+  }
+
+  function start() {
+    score = 0;
+    shields = 3;
+    scoreEl.innerText = score;
+    shieldsEl.innerText = shields;
+    player.x = 220;
+    bullets = [];
+    enemyBullets = [];
+    particles = [];
+    createEnemies();
+    isPlaying = true;
+    overlay.classList.remove('active');
+  }
+
+  function update() {
+    // move stars
+    stars.forEach(s => {
+      s.y += s.speed;
+      if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+    });
+
+    if (!isPlaying) return;
+
+    if ((keys['ArrowLeft'] || keys['a']) && player.x > 10) player.x -= player.speed;
+    if ((keys['ArrowRight'] || keys['d']) && player.x < canvas.width - player.w - 10) player.x += player.speed;
+
+    if (keys['Space'] || keys[' ']) {
+      const now = Date.now();
+      if (now - lastShot > 250) {
+        bullets.push({ x: player.x + player.w/2 - 2, y: player.y, w: 4, h: 12, speed: 8 });
+        lastShot = now;
+      }
+    }
+
+    // player bullets
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i];
+      b.y -= b.speed;
+      if (b.y < -10) { bullets.splice(i, 1); continue; }
+
+      // hit enemy
+      for (let j = 0; j < enemies.length; j++) {
+        const e = enemies[j];
+        if (e.alive && b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h) {
+          e.alive = false;
+          bullets.splice(i, 1);
+          score += 100;
+          scoreEl.innerText = score;
+          spawnExplosion(e.x + e.w/2, e.y + e.h/2, '#06b6d4');
+          break;
+        }
+      }
+    }
+
+    // move enemies
+    let hitEdge = false;
+    let aliveCount = 0;
+    enemies.forEach(e => {
+      if (!e.alive) return;
+      aliveCount++;
+      if (e.x + e.w > canvas.width - 15 || e.x < 15) {
+        hitEdge = true;
+      }
+    });
+
+    if (aliveCount === 0) {
+      score += 500;
+      createEnemies();
+      enemySpeed += 0.4;
+      return;
+    }
+
+    if (hitEdge) {
+      enemyDir *= -1;
+      enemies.forEach(e => {
+        if (e.alive) e.y += 14;
+      });
+    }
+
+    enemies.forEach(e => {
+      if (e.alive) {
+        e.x += enemyDir * (1 + (32 - aliveCount) * 0.08);
+
+        // enemy fires back randomly
+        if (Math.random() < 0.0018) {
+          enemyBullets.push({ x: e.x + e.w/2, y: e.y + e.h, w: 3, h: 10, speed: 4 });
+        }
+
+        // reached player
+        if (e.y + e.h >= player.y) {
+          shields = 0;
+          endGame();
+        }
+      }
+    });
+
+    // enemy bullets
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+      const eb = enemyBullets[i];
+      eb.y += eb.speed;
+      if (eb.y > canvas.height + 10) { enemyBullets.splice(i, 1); continue; }
+
+      // hit player
+      if (eb.x > player.x && eb.x < player.x + player.w && eb.y > player.y && eb.y < player.y + player.h) {
+        enemyBullets.splice(i, 1);
+        shields--;
+        shieldsEl.innerText = shields;
+        spawnExplosion(player.x + player.w/2, player.y + player.h/2, '#f43f5e');
+        if (shields <= 0) endGame();
+      }
+    }
+
+    // particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function spawnExplosion(x, y, color) {
+    for (let i = 0; i < 12; i++) {
+      particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 5,
+        vy: (Math.random() - 0.5) * 5,
+        life: 20,
+        color
+      });
+    }
+  }
+
+  function endGame() {
+    isPlaying = false;
+    overlayMsg.innerText = 'Mission Failed';
+    overlaySub.innerText = `Final Score: ${score}`;
+    startBtn.innerText = 'Relaunch Ship';
+    overlay.classList.add('active');
+  }
+
+  function draw() {
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // stars
+    ctx.fillStyle = '#94a3b8';
+    stars.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // enemies
+    enemies.forEach(e => {
+      if (!e.alive) return;
+      ctx.fillStyle = e.type === 0 ? '#f43f5e' : (e.type === 1 ? '#a855f7' : '#3b82f6');
+      ctx.beginPath();
+      ctx.roundRect(e.x, e.y, e.w, e.h, 4);
+      ctx.fill();
+
+      // eyes
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(e.x + 6, e.y + 6, 4, 6);
+      ctx.fillRect(e.x + e.w - 10, e.y + 6, 4, 6);
+    });
+
+    // player
+    ctx.fillStyle = '#06b6d4';
+    ctx.beginPath();
+    ctx.moveTo(player.x + player.w/2, player.y);
+    ctx.lineTo(player.x + player.w, player.y + player.h);
+    ctx.lineTo(player.x, player.y + player.h);
+    ctx.closePath();
+    ctx.fill();
+
+    // player bullets
+    ctx.fillStyle = '#38bdf8';
+    bullets.forEach(b => {
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    });
+
+    // enemy bullets
+    ctx.fillStyle = '#f43f5e';
+    enemyBullets.forEach(eb => {
+      ctx.fillRect(eb.x, eb.y, eb.w, eb.h);
+    });
+
+    // particles
+    particles.forEach(p => {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, 2, 2);
+    });
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('keydown', e => { keys[e.key] = true; });
+  window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+  canvas.addEventListener('touchmove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    player.x = (e.touches[0].clientX - rect.left) * scaleX - player.w / 2;
+    if (player.x < 10) player.x = 10;
+    if (player.x > canvas.width - player.w - 10) player.x = canvas.width - player.w - 10;
+  }, { passive: true });
+
+  canvas.addEventListener('touchstart', () => {
+    keys['Space'] = true;
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', () => {
+    keys['Space'] = false;
+  }, { passive: true });
+
+  startBtn.onclick = start;
+  loop();
+</script>
+</body>
+</html>

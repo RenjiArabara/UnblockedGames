@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Retro Neon Snake</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #090d16;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 12px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 440px;
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #10b981;
+    letter-spacing: -0.5px;
+  }
+  .stats {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .canvas-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    aspect-ratio: 1;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0f172a;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.active { display: flex; }
+  .btn {
+    background: #10b981;
+    color: #042f1a;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #34d399; transform: scale(1.02); }
+  .instructions {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+  }
+  .touch-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-gap: 8px;
+    margin-top: 12px;
+  }
+  .t-btn {
+    width: 50px;
+    height: 50px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .t-btn:active { background: #334155; }
+  @media (min-width: 600px) {
+    .touch-controls { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Retro Snake</div>
+    <div class="stats">
+      <div class="stat-item">Score: <strong id="score" style="color:#10b981;">0</strong></div>
+      <div class="stat-item">High: <strong id="high" style="color:#38bdf8;">0</strong></div>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="gameCanvas" width="440" height="440"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlay-title" style="color: #f43f5e; font-size: 26px;">Game Over</h2>
+      <p id="final-score" style="color: #cbd5e1; font-size: 14px;">Score: 0</p>
+      <button class="btn" id="restart-btn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="touch-controls">
+    <div></div>
+    <button class="t-btn" id="btn-up">▲</button>
+    <div></div>
+    <button class="t-btn" id="btn-left">◀</button>
+    <button class="t-btn" id="btn-down">▼</button>
+    <button class="t-btn" id="btn-right">▶</button>
+  </div>
+
+  <div class="instructions">Use Arrow Keys or WASD to navigate. Eat apples & avoid walls!</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const highEl = document.getElementById('high');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const finalScoreEl = document.getElementById('final-score');
+  const restartBtn = document.getElementById('restart-btn');
+
+  const GRID_SIZE = 20;
+  const TILE_COUNT = canvas.width / GRID_SIZE; // 22
+
+  let snake = [];
+  let food = { x: 10, y: 10 };
+  let goldenFood = null;
+  let goldenTimer = 0;
+  let dir = { x: 1, y: 0 };
+  let nextDir = { x: 1, y: 0 };
+  let score = 0;
+  let highScore = parseInt(localStorage.getItem('snake_highscore') || '0', 10);
+  let gameInterval = null;
+  let isGameOver = false;
+
+  highEl.innerText = highScore;
+
+  function resetGame() {
+    snake = [
+      { x: 8, y: 10 },
+      { x: 7, y: 10 },
+      { x: 6, y: 10 }
+    ];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score = 0;
+    scoreEl.innerText = score;
+    isGameOver = false;
+    goldenFood = null;
+    overlay.classList.remove('active');
+    spawnFood();
+
+    if (gameInterval) clearInterval(gameInterval);
+    gameInterval = setInterval(gameLoop, 95);
+  }
+
+  function spawnFood() {
+    let valid = false;
+    while (!valid) {
+      food.x = Math.floor(Math.random() * TILE_COUNT);
+      food.y = Math.floor(Math.random() * TILE_COUNT);
+      valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+    }
+    // chance for golden apple
+    if (Math.random() < 0.25 && !goldenFood) {
+      goldenFood = {
+        x: Math.floor(Math.random() * TILE_COUNT),
+        y: Math.floor(Math.random() * TILE_COUNT)
+      };
+      goldenTimer = 60;
+    }
+  }
+
+  function gameLoop() {
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    // wall collision
+    if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT) {
+      endGame();
+      return;
+    }
+
+    // self collision
+    if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+      endGame();
+      return;
+    }
+
+    snake.unshift(head);
+
+    // check food
+    if (head.x === food.x && head.y === food.y) {
+      score += 10;
+      scoreEl.innerText = score;
+      if (score > highScore) {
+        highScore = score;
+        highEl.innerText = highScore;
+        localStorage.setItem('snake_highscore', highScore);
+      }
+      spawnFood();
+    } else if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
+      score += 50;
+      scoreEl.innerText = score;
+      goldenFood = null;
+    } else {
+      snake.pop();
+    }
+
+    if (goldenFood) {
+      goldenTimer--;
+      if (goldenTimer <= 0) goldenFood = null;
+    }
+
+    draw();
+  }
+
+  function draw() {
+    // background grid
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= canvas.width; i += GRID_SIZE) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    // draw food
+    ctx.fillStyle = '#ef4444';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(food.x * GRID_SIZE + GRID_SIZE/2, food.y * GRID_SIZE + GRID_SIZE/2, GRID_SIZE/2 - 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // golden food
+    if (goldenFood) {
+      ctx.fillStyle = '#eab308';
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#facc15';
+      ctx.beginPath();
+      ctx.arc(goldenFood.x * GRID_SIZE + GRID_SIZE/2, goldenFood.y * GRID_SIZE + GRID_SIZE/2, GRID_SIZE/2 - 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // draw snake
+    snake.forEach((seg, idx) => {
+      ctx.shadowBlur = idx === 0 ? 10 : 0;
+      ctx.shadowColor = '#10b981';
+      ctx.fillStyle = idx === 0 ? '#34d399' : '#059669';
+      ctx.beginPath();
+      ctx.roundRect(seg.x * GRID_SIZE + 1, seg.y * GRID_SIZE + 1, GRID_SIZE - 2, GRID_SIZE - 2, 4);
+      ctx.fill();
+    });
+
+    ctx.shadowBlur = 0;
+  }
+
+  function endGame() {
+    isGameOver = true;
+    clearInterval(gameInterval);
+    finalScoreEl.innerText = `Final Score: ${score}`;
+    overlay.classList.add('active');
+  }
+
+  window.addEventListener('keydown', e => {
+    if (['ArrowUp', 'w', 'W'].includes(e.key) && dir.y === 0) {
+      nextDir = { x: 0, y: -1 };
+      e.preventDefault();
+    } else if (['ArrowDown', 's', 'S'].includes(e.key) && dir.y === 0) {
+      nextDir = { x: 0, y: 1 };
+      e.preventDefault();
+    } else if (['ArrowLeft', 'a', 'A'].includes(e.key) && dir.x === 0) {
+      nextDir = { x: -1, y: 0 };
+      e.preventDefault();
+    } else if (['ArrowRight', 'd', 'D'].includes(e.key) && dir.x === 0) {
+      nextDir = { x: 1, y: 0 };
+      e.preventDefault();
+    }
+  });
+
+  document.getElementById('btn-up').onclick = () => { if (dir.y === 0) nextDir = { x: 0, y: -1 }; };
+  document.getElementById('btn-down').onclick = () => { if (dir.y === 0) nextDir = { x: 0, y: 1 }; };
+  document.getElementById('btn-left').onclick = () => { if (dir.x === 0) nextDir = { x: -1, y: 0 }; };
+  document.getElementById('btn-right').onclick = () => { if (dir.x === 0) nextDir = { x: 1, y: 0 }; };
+
+  restartBtn.onclick = resetGame;
+  resetGame();
+</script>
+</body>
+</html>

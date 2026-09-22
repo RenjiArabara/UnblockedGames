@@ -1,0 +1,6 @@
+{
+  "name": "Unblocked Games Portal",
+  "description": "Fast and responsive unblocked games portal loaded from JSON with iframe embeds, category filtering, search, and custom game support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
